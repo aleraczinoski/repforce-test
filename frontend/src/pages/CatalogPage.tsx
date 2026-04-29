@@ -1,22 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "@/types/product";
 import ProductCard from "../components/ProductCard";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../services/api";
 
 export default function CatalogPage() {
   const [categoria, setCategoria] = useState("");
   const [marca, setMarca] = useState("");
   const [estoque, setEstoque] = useState(false);
   const [busca, setBusca] = useState("");
+  const [min, setMin] = useState(0);
+  const [max, setMax] = useState(10000);
 
-  const produtos: Product[] = [];
+  /*
+   * Busca a lista de produtos da API usando React Query.
+   *
+   * @returns
+   * - produtos: array de produtos (ou [] enquanto carrega)
+   * - isLoading: indica se a requisição está em andamento
+   */
+  const { data: produtos = [], isLoading } = useQuery<Product[]>({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const response = await api.get<Product[]>("/products");
+      return response.data;
+    },
+  });
 
   const maxPrice = Math.max(...produtos.map((p) => p.price));
   const minPrice = Math.min(...produtos.map((p) => p.price));
   const maxRange = Math.ceil(maxPrice);
   const minRange = Math.floor(minPrice);
 
-  const [min, setMin] = useState(minRange);
-  const [max, setMax] = useState(maxRange);
+  // Range duplo alterado
+  useEffect(() => {
+    setMin(minRange);
+    setMax(maxRange);
+  }, [minRange, maxRange]); //Array de dependências -> Usa o useEffect quando o minRange ou maxRange mudar
+
+  if (isLoading) {
+    return <p className='p-6'>Carregando produtos...</p>;
+  }
+
+  const marcas = [...new Set(produtos.map((produto) => produto.brand))];
+  const categorias = [...new Set(produtos.map((produto) => produto.category))];
 
   // Filtrar
   const produtosFiltrados = produtos.filter((produto) => {
@@ -54,7 +81,14 @@ export default function CatalogPage() {
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
             >
-              <option value=''>Selecione...</option>
+              <option value=''>Selecione a categoria</option>
+              {categorias.map((categoria) => {
+                return (
+                  <option key={categoria} value={categoria}>
+                    {categoria}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -72,7 +106,14 @@ export default function CatalogPage() {
               value={marca}
               onChange={(e) => setMarca(e.target.value)}
             >
-              <option value=''>Selecione...</option>
+              <option value=''>Selecione a marca</option>
+              {marcas.map((marca) => {
+                return (
+                  <option key={marca} value={marca}>
+                    {marca}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -150,7 +191,7 @@ export default function CatalogPage() {
             <input
               type='text'
               id='busca'
-              placeholder='Busque um produto...'
+              placeholder='Busque um produto'
               className='w-full rounded-md border border-gray-300 p-2.5 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500'
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
@@ -177,9 +218,15 @@ export default function CatalogPage() {
 
       {/* Lista de Produtos */}
       <section className='grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 content-start'>
-        {produtosFiltrados.map((produto) => (
-          <ProductCard key={produto.id} produto={produto} />
-        ))}
+        {produtosFiltrados.length > 0 ? (
+          produtosFiltrados.map((produto) => (
+            <ProductCard key={produto.id} produto={produto} />
+          ))
+        ) : (
+          <p className='text-center col-span-full mt-4'>
+            Nenhum produto encontrado
+          </p>
+        )}
       </section>
     </main>
   );
