@@ -1,4 +1,3 @@
-import "./App.css";
 import CatalogPage from "./pages/CatalogPage";
 
 function App() {
