@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { Product } from "@/types/product";
 import ProductCard from "../components/ProductCard";
 import type { ProductResponse } from "@/types/productResponse";
+import type { CatalogSearch } from "@/types/catalogSearch";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { api } from "../services/api";
 import { Button } from "../components/ui/button";
@@ -19,16 +21,41 @@ import { Slider } from "../components/ui/slider";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CatalogPage() {
-  const [categoria, setCategoria] = useState("");
-  const [marca, setMarca] = useState("");
-  const [estoque, setEstoque] = useState(false);
-  const [busca, setBusca] = useState("");
-  const [buscaFiltro, setBuscaFiltro] = useState("");
-  const [min, setMin] = useState(0);
-  const [max, setMax] = useState(10000);
-  const [minFiltro, setMinFiltro] = useState(0);
-  const [maxFiltro, setMaxFiltro] = useState(10000);
-  const [page, setPage] = useState(1);
+  const searchParams: CatalogSearch = useSearch({ strict: false }); // Lê a URL e transforma em um objeto JavaScript
+  const navigate = useNavigate(); // Permite mudar a URL
+
+  // Acessa os elementos de filtro na URL
+  const categoria = searchParams.categoria || "";
+  const marca = searchParams.marca || "";
+  const estoque = searchParams.estoque === true;
+  const buscaFiltro = searchParams.busca || "";
+  const page = Number(searchParams.page) || 1;
+  const minFiltro = searchParams.min ? Number(searchParams.min) : undefined;
+  const maxFiltro = searchParams.max ? Number(searchParams.max) : undefined;
+
+  const [busca, setBusca] = useState(buscaFiltro);
+  const [min, setMin] = useState(minFiltro ?? 0);
+  const [max, setMax] = useState(maxFiltro ?? 10000);
+
+  const updateFilters = (newFilters: Partial<CatalogSearch>) => {
+    navigate({
+      to: ".", // Mantem na mesma página/rota atual
+      search: (prev: CatalogSearch) => {
+        const updated: CatalogSearch = { ...prev, ...newFilters }; // Monta a nova URL
+        Object.keys(updated).forEach((key) => {
+          // Verifica se o valor deve ser removido da URL
+          if (
+            updated[key as keyof CatalogSearch] === "" ||
+            updated[key as keyof CatalogSearch] === undefined ||
+            updated[key as keyof CatalogSearch] === false
+          ) {
+            delete updated[key as keyof CatalogSearch];
+          }
+        });
+        return updated;
+      },
+    });
+  };
 
   /*
    * Busca produtos da API com filtros e paginação usando React Query.
@@ -57,8 +84,8 @@ export default function CatalogPage() {
         params: {
           category: categoria,
           brand: marca,
-          minPrice: minFiltro !== minRange ? minFiltro : undefined,
-          maxPrice: maxFiltro !== maxRange ? maxFiltro : undefined,
+          minPrice: minFiltro,
+          maxPrice: maxFiltro,
           inStock: estoque ? true : false,
           search: buscaFiltro || undefined,
           page: page,
@@ -91,25 +118,33 @@ export default function CatalogPage() {
   const minRange = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0;
   const maxRange = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000;
 
-  // Range duplo alterado
   useEffect(() => {
     if (allProducts.length > 0) {
-      setMin(minRange);
-      setMax(maxRange);
+      if (minFiltro === undefined) setMin(minRange);
+      if (maxFiltro === undefined) setMax(maxRange);
     }
-  }, [allProducts.length, minRange, maxRange]); //Array de dependências -> Usa o useEffect quando o minRange, maxRange ou o tamanho do array mudar
+  }, [allProducts.length, minRange, maxRange, minFiltro, maxFiltro]);
 
-  // Debounce da busca e do range -> Controla para não fazer diversas requisições
+  const isFirstRender = useRef(true);
+  // Alteração da URL para o range e a busca
   useEffect(() => {
+    // Primeira vez que a página carrega, a mudança de URL seria alterada à toa,
+    // por isso o isFirstRender é alterado para false após o carregamento da página
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timeout = setTimeout(() => {
-      setBuscaFiltro(busca);
-      setMinFiltro(min);
-      setMaxFiltro(max);
-      setPage(1); // Retorna para a página 1 ao terminar de digitar/ajustar preço
+      updateFilters({
+        busca: busca || undefined,
+        min: min !== minRange ? min : undefined,
+        max: max !== maxRange ? max : undefined,
+        page: 1,
+      });
     }, 500);
 
-    return () => clearTimeout(timeout);
-  }, [busca, min, max]); // Array de dependências -> Usa o useEffect quando o minRange, maxRange ou a busca mudar
+    return () => clearTimeout(timeout); // Cancela o useEffect se ocorrer alguma mudança no range ou busca antes dos 500ms
+  }, [busca, min, max, minRange, maxRange]);
 
   // Lista de marcas e categorias
   const marcas = [...new Set(allProducts.map((produto) => produto.brand))];
@@ -132,8 +167,10 @@ export default function CatalogPage() {
             <Select
               value={categoria}
               onValueChange={(value) => {
-                setCategoria(value === "all" ? "" : value);
-                setPage(1);
+                updateFilters({
+                  categoria: value === "all" ? undefined : value,
+                  page: 1,
+                });
               }}
             >
               <SelectTrigger id='selectCategory'>
@@ -156,8 +193,10 @@ export default function CatalogPage() {
             <Select
               value={marca}
               onValueChange={(value) => {
-                setMarca(value === "all" ? "" : value);
-                setPage(1);
+                updateFilters({
+                  marca: value === "all" ? undefined : value,
+                  page: 1,
+                });
               }}
             >
               <SelectTrigger id='selectBrand'>
@@ -200,8 +239,7 @@ export default function CatalogPage() {
               id='stock'
               checked={estoque}
               onCheckedChange={(checked) => {
-                setEstoque(Boolean(checked));
-                setPage(1);
+                updateFilters({ estoque: checked ? true : undefined, page: 1 });
               }}
             />
             <Label
@@ -230,13 +268,10 @@ export default function CatalogPage() {
             variant='ghost'
             className='w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700'
             onClick={() => {
-              setCategoria("");
-              setMarca("");
+              navigate({ to: ".", search: {} }); // Limpa a URL
               setMin(minRange);
               setMax(maxRange);
-              setEstoque(false);
               setBusca("");
-              setPage(1);
             }}
           >
             Limpar Filtros
@@ -266,7 +301,7 @@ export default function CatalogPage() {
           pages > 1 && (
             <div className='col-span-full flex justify-center items-center gap-4 mt-8'>
               <Button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => updateFilters({ page: Math.max(1, page - 1) })}
                 disabled={page === 1}
                 variant='outline'
                 size='icon'
@@ -277,7 +312,9 @@ export default function CatalogPage() {
                 Página {page} de {pages}
               </span>
               <Button
-                onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                onClick={() =>
+                  updateFilters({ page: Math.min(pages, page + 1) })
+                }
                 disabled={page === pages}
                 variant='outline'
                 size='icon'
