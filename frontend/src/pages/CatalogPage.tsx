@@ -4,6 +4,18 @@ import ProductCard from "../components/ProductCard";
 import type { ProductResponse } from "@/types/productResponse";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { api } from "../services/api";
+import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Slider } from "../components/ui/slider";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CatalogPage() {
@@ -115,149 +127,108 @@ export default function CatalogPage() {
 
         <form className='flex flex-col gap-6'>
           {/* Categoria */}
-          <div className='flex flex-col gap-2'>
-            <label
-              htmlFor='selectCategory'
-              className='text-sm font-medium text-gray-700'
-            >
-              Categoria
-            </label>
-            <select
-              id='selectCategory'
-              className='w-full rounded-md border border-gray-300 p-2.5 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500'
+          <div className='grid gap-2'>
+            <Label htmlFor='selectCategory'>Categoria</Label>
+            <Select
               value={categoria}
-              onChange={(e) => {
-                setCategoria(e.target.value);
+              onValueChange={(value) => {
+                setCategoria(value === "all" ? "" : value);
                 setPage(1);
               }}
             >
-              <option value=''>Selecione a categoria</option>
-              {categorias.map((categoria) => {
-                return (
-                  <option key={categoria} value={categoria}>
-                    {categoria}
-                  </option>
-                );
-              })}
-            </select>
+              <SelectTrigger id='selectCategory'>
+                <SelectValue placeholder='Selecione a categoria' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>Todas as categorias</SelectItem>
+                {categorias.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Marca */}
-          <div className='flex flex-col gap-2'>
-            <label
-              htmlFor='selectBrand'
-              className='text-sm font-medium text-gray-700'
-            >
-              Marca
-            </label>
-            <select
-              id='selectBrand'
-              className='w-full rounded-md border border-gray-300 p-2.5 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500'
+          <div className='grid gap-2'>
+            <Label htmlFor='selectBrand'>Marca</Label>
+            <Select
               value={marca}
-              onChange={(e) => {
-                setMarca(e.target.value);
+              onValueChange={(value) => {
+                setMarca(value === "all" ? "" : value);
                 setPage(1);
               }}
             >
-              <option value=''>Selecione a marca</option>
-              {marcas.map((marca) => {
-                return (
-                  <option key={marca} value={marca}>
-                    {marca}
-                  </option>
-                );
-              })}
-            </select>
+              <SelectTrigger id='selectBrand'>
+                <SelectValue placeholder='Selecione a marca' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>Todas as marcas</SelectItem>
+                {marcas.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Faixa de preço */}
-          <fieldset className='flex flex-col gap-2'>
-            <legend className='text-sm font-medium text-gray-700 mb-2'>
-              Faixa de preço
-            </legend>
-
-            <div className='relative h-8'>
-              <div className='absolute top-1/2 h-1 w-full -translate-y-1/2 rounded bg-gray-200' />
-
-              <div
-                className='absolute top-1/2 h-1 -translate-y-1/2 rounded bg-purple-600'
-                style={{
-                  left: `${((min - minRange) / (maxRange - minRange)) * 100}%`,
-                  width: `${((max - min) / (maxRange - minRange)) * 100}%`,
-                }}
-              />
-
-              <input
-                type='range'
-                min={minRange}
-                max={maxRange}
-                value={min}
-                onChange={(e) =>
-                  setMin(Math.min(Number(e.target.value), max - 1))
-                }
-                className='pointer-events-none absolute top-1/2 z-20 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600'
-              />
-
-              <input
-                type='range'
-                min={minRange}
-                max={maxRange}
-                value={max}
-                onChange={(e) =>
-                  setMax(Math.max(Number(e.target.value), min + 1))
-                }
-                className='pointer-events-none absolute top-1/2 z-30 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-600'
-              />
-            </div>
-
-            <div className='mt-1 flex justify-between text-xs font-medium text-gray-500'>
+          <div className='grid gap-4'>
+            <Label>Faixa de preço</Label>
+            <Slider
+              value={[min, max]}
+              min={minRange}
+              max={maxRange}
+              step={1}
+              onValueChange={([newMin, newMax]) => {
+                setMin(newMin);
+                setMax(newMax);
+              }}
+              disabled={allProducts.length === 0}
+            />
+            <div className='flex justify-between text-xs font-medium text-muted-foreground'>
               <span>R$ {min}</span>
               <span>R$ {max}</span>
             </div>
-          </fieldset>
+          </div>
 
           {/* Disponível em estoque */}
-          <div className='flex items-center gap-3'>
-            <input
-              type='checkbox'
+          <div className='flex items-center space-x-2'>
+            <Checkbox
               id='stock'
-              className='h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500'
               checked={estoque}
-              onChange={(e) => {
-                setEstoque(e.target.checked);
+              onCheckedChange={(checked) => {
+                setEstoque(Boolean(checked));
                 setPage(1);
               }}
             />
-            <label
+            <Label
               htmlFor='stock'
-              className='text-sm font-medium text-gray-700 cursor-pointer'
+              className='cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
             >
               Disponível em estoque
-            </label>
+            </Label>
           </div>
 
           {/* Buscar */}
-          <div className='flex flex-col gap-2'>
-            <label
-              htmlFor='busca'
-              className='text-sm font-medium text-gray-700'
-            >
-              Buscar
-            </label>
-            <input
+          <div className='grid gap-2'>
+            <Label htmlFor='busca'>Buscar</Label>
+            <Input
               type='text'
               id='busca'
               placeholder='Busque um produto'
-              className='w-full rounded-md border border-gray-300 p-2.5 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500'
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
             />
           </div>
 
           {/* Limpar Filtros */}
-          <button
+          <Button
             type='button'
-            className='mt-2 w-full rounded-md bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 active:bg-red-200'
+            variant='ghost'
+            className='w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700'
             onClick={() => {
               setCategoria("");
               setMarca("");
@@ -269,7 +240,7 @@ export default function CatalogPage() {
             }}
           >
             Limpar Filtros
-          </button>
+          </Button>
         </form>
       </aside>
 
@@ -294,23 +265,25 @@ export default function CatalogPage() {
           // Paginação
           pages > 1 && (
             <div className='col-span-full flex justify-center items-center gap-4 mt-8'>
-              <button
+              <Button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className='p-2 rounded-md border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors'
+                variant='outline'
+                size='icon'
               >
-                <ChevronLeft className='w-5 h-5' />
-              </button>
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
               <span className='text-sm font-medium text-gray-700'>
                 Página {page} de {pages}
               </span>
-              <button
+              <Button
                 onClick={() => setPage((p) => Math.min(pages, p + 1))}
                 disabled={page === pages}
-                className='p-2 rounded-md border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors'
+                variant='outline'
+                size='icon'
               >
-                <ChevronRight className='w-5 h-5' />
-              </button>
+                <ChevronRight className='h-4 w-4' />
+              </Button>
             </div>
           )
         }
