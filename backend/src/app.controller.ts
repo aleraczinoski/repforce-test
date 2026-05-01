@@ -1,4 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
 import { products } from './data/products';
 
 @Controller()
@@ -63,5 +69,17 @@ export class AppController {
       page: paginaAtual,
       pageSize: itensPorPagina,
     };
+  }
+
+  // Rota para buscar um único produto
+  @Get('products/:id')
+  getProductById(@Param('id') id: string) {
+    const produto = products.find((p) => p.id === id);
+
+    if (!produto) {
+      throw new NotFoundException('Produto não encontrado');
+    }
+
+    return produto;
   }
 }

@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import "./index.css";
 import CatalogPage from "./pages/CatalogPage";
+import ProductDetailsPage from "./pages/ProductDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,13 @@ const catalogRoute = createRoute({
   component: CatalogPage, // Quando o usuário acessa a rota /, mostra na tela o página CatalogPage
 });
 
-const routeTree = rootRoute.addChildren([catalogRoute]);
+const productDetailsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/produtos/$id",
+  component: ProductDetailsPage, // Quando o usuário acessa a rota /produtos/$id, mostra na tela o página ProductDetailsPage
+});
+
+const routeTree = rootRoute.addChildren([catalogRoute, productDetailsRoute]);
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {

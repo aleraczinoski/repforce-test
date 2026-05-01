@@ -37,6 +37,7 @@ export default function CatalogPage() {
   const [min, setMin] = useState(minFiltro ?? 0);
   const [max, setMax] = useState(maxFiltro ?? 10000);
 
+  // Atualiza a URL com os novos filtros
   const updateFilters = (newFilters: Partial<CatalogSearch>) => {
     navigate({
       to: ".", // Mantem na mesma página/rota atual
@@ -154,6 +155,7 @@ export default function CatalogPage() {
 
   const pages = Math.ceil(data ? data?.total / data?.pageSize : 0);
 
+  // Página do catálogo
   return (
     <main className='flex min-h-screen bg-gray-50 p-6 gap-6'>
       {/* Painel lateral de Filtros */}
@@ -281,7 +283,7 @@ export default function CatalogPage() {
 
       {/* Lista de Produtos */}
       <section
-        className={`grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 content-start transition-opacity duration-200 ${isFetching && !isLoading ? "opacity-50 pointer-events-none" : ""}`}
+        className={`grid w-full sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 content-start transition-opacity duration-200 ${isFetching && !isLoading ? "opacity-50 pointer-events-none" : ""}`}
       >
         {isLoading ? (
           <p className='text-center col-span-full mt-4'>

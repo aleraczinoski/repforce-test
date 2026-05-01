@@ -1,4 +1,6 @@
 import type { Product } from "@/types/product";
+import { Link } from "@tanstack/react-router";
+import { Button } from "../components/ui/button";
 
 interface ProductCardProps {
   produto: Product;
@@ -61,12 +63,9 @@ export default function ProductCard({ produto }: ProductCardProps) {
             </p>
           </div>
 
-          <a
-            href='#'
-            className='flex w-full items-center justify-center rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-purple-700 active:bg-purple-800'
-          >
-            Ver detalhes
-          </a>
+          <Link to='/produtos/$id' params={{ id: produto.id }}>
+            <Button className='w-full cursor-pointer'>Ver detalhes</Button>
+          </Link>
         </div>
       </div>
     </div>
