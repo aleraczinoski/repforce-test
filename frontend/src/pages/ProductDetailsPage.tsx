@@ -37,12 +37,13 @@ const getQuoteSchema = (maxStock: number) =>
     observations: z.string().max(500, "Máximo de 500 caracteres").optional(),
   });
 
-type QuoteFormData = z.infer<ReturnType<typeof getQuoteSchema>>;
+type QuoteFormData = z.infer<ReturnType<typeof getQuoteSchema>>; // Cria o tipo dos dados do formulário com base no schema
 
 export default function ProductDetailsPage() {
   const { id } = useParams({ strict: false }) as { id: string };
   const navigate = useNavigate();
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Busca o produto pelo ID na API
   const {
@@ -67,6 +68,21 @@ export default function ProductDetailsPage() {
   } = useForm<QuoteFormData>({
     resolver: produto ? zodResolver(getQuoteSchema(produto.stock)) : undefined, // Se o produto carregou, usa o schema do Zod com o estoque dele
   });
+
+  const onSubmit = async (data: QuoteFormData) => {
+    try {
+      await api.post("/quotes", {
+        productId: id,
+        ...data,
+      });
+      setSuccessMsg("Cotação solicitada com sucesso!");
+      reset();
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (error) {
+      setErrorMsg("Erro ao solicitar cotação. Tente novamente.");
+      setTimeout(() => setErrorMsg(""), 3000);
+    }
+  };
 
   // Tratamentos de interface (Loading e Erro)
   if (isLoading) {
@@ -203,14 +219,18 @@ export default function ProductDetailsPage() {
               Solicitar Cotação
             </h2>
 
-            {/* Mensagem de Sucesso Verde */}
-            {successMsg && (
-              <div className='mb-6 p-4 bg-green-100 text-green-800 border border-green-200 rounded-lg font-medium text-center'>
+            {/* Resposta ao usuário da situação do envio do formulário */}
+            {successMsg ? (
+              <div className='mb-4 p-3 bg-green-100 text-green-800 border border-green-200 rounded-lg font-medium text-sm text-center'>
                 {successMsg}
               </div>
-            )}
+            ) : errorMsg ? (
+              <div className='mb-4 p-3 bg-red-100 text-red-800 border border-red-200 rounded-lg font-medium text-sm text-center'>
+                {errorMsg}
+              </div>
+            ) : null}
 
-            <form className='flex flex-col gap-4'>
+            <form className='flex flex-col gap-0'>
               <div className='space-y-1'>
                 <Label htmlFor='name'>
                   Nome Completo <span className='text-red-500'>*</span>
@@ -220,11 +240,9 @@ export default function ProductDetailsPage() {
                   placeholder='Ex: Maria Souza'
                   {...register("name")}
                 />
-                {errors.name && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.name.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.name?.message as string}
+                </p>
               </div>
 
               <div className='space-y-1'>
@@ -237,11 +255,9 @@ export default function ProductDetailsPage() {
                   placeholder='seu@email.com'
                   {...register("email")}
                 />
-                {errors.email && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.email.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.email?.message as string}
+                </p>
               </div>
 
               <div className='space-y-1'>
@@ -253,11 +269,9 @@ export default function ProductDetailsPage() {
                   placeholder='Apenas números. Ex: 11999999999'
                   {...register("phone")}
                 />
-                {errors.phone && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.phone.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.phone?.message as string}
+                </p>
               </div>
 
               <div className='space-y-1'>
@@ -269,11 +283,9 @@ export default function ProductDetailsPage() {
                   placeholder='Sua Empresa LTDA'
                   {...register("company")}
                 />
-                {errors.company && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.company.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.company?.message as string}
+                </p>
               </div>
 
               <div className='space-y-1'>
@@ -286,11 +298,9 @@ export default function ProductDetailsPage() {
                   placeholder={`Máx. ${produto.stock}`}
                   {...register("quantity")}
                 />
-                {errors.quantity && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.quantity.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.quantity?.message as string}
+                </p>
               </div>
 
               <div className='space-y-1'>
@@ -301,16 +311,15 @@ export default function ProductDetailsPage() {
                   placeholder='Detalhes da entrega, condições, etc...'
                   {...register("observations")}
                 />
-                {errors.observations && (
-                  <p className='text-red-500 text-xs font-medium'>
-                    {errors.observations.message}
-                  </p>
-                )}
+                <p className='text-red-500 text-xs font-medium min-h-[20px]'>
+                  {errors.observations?.message as string}
+                </p>
               </div>
 
               <Button
+                onClick={handleSubmit(onSubmit)}
                 type='submit'
-                className='w-full mt-4 cursor-pointer'
+                className='w-full mt-2 cursor-pointer'
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Enviando solicitação..." : "Solicitar Cotação"}

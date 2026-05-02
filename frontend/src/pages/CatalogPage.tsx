@@ -268,7 +268,7 @@ export default function CatalogPage() {
           <Button
             type='button'
             variant='ghost'
-            className='w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700'
+            className='w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer'
             onClick={() => {
               navigate({ to: ".", search: {} }); // Limpa a URL
               setMin(minRange);
@@ -303,6 +303,7 @@ export default function CatalogPage() {
           pages > 1 && (
             <div className='col-span-full flex justify-center items-center gap-4 mt-8'>
               <Button
+                className='cursor-pointer'
                 onClick={() => updateFilters({ page: Math.max(1, page - 1) })}
                 disabled={page === 1}
                 variant='outline'
@@ -314,6 +315,7 @@ export default function CatalogPage() {
                 Página {page} de {pages}
               </span>
               <Button
+                className='cursor-pointer'
                 onClick={() =>
                   updateFilters({ page: Math.min(pages, page + 1) })
                 }
