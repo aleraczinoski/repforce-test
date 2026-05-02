@@ -1,6 +1,8 @@
 import type { Product } from "@/types/product";
 import { Link } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
+import { Heart } from "lucide-react";
+import { useFavorites } from "../hooks/useFavorites";
 
 interface ProductCardProps {
   produto: Product;
@@ -9,10 +11,24 @@ interface ProductCardProps {
 // Componente responsável por exibir um card de produto
 // Recebe o produto via props (destructuring direto)
 export default function ProductCard({ produto }: ProductCardProps) {
+  const { favorites, toggleFavorite } = useFavorites();
+  const isFavorite = favorites.includes(produto.id);
+
   return (
-    <div className='group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl'>
-      {/* Imagem do Produto com Badge de Estoque */}
+    <div className='group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm '>
+      {/* Imagem do Produto com Badge de Estoque e Favorito*/}
       <div className='relative flex aspect-square w-full items-center justify-center overflow-hidden bg-gray-50 p-6'>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            toggleFavorite(produto.id);
+          }}
+          className='absolute left-2 top-2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md'
+        >
+          <Heart
+            className={`w-5 h-5 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"}`}
+          />
+        </button>
         <span
           className={`absolute right-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
             produto.stock === 0
@@ -31,7 +47,7 @@ export default function ProductCard({ produto }: ProductCardProps) {
         <img
           src={produto.thumbnail}
           alt={produto.title}
-          className='h-full w-full object-contain transition-transform duration-300 group-hover:scale-105'
+          className='h-full w-full absolute'
         />
       </div>
 
@@ -64,7 +80,9 @@ export default function ProductCard({ produto }: ProductCardProps) {
           </div>
 
           <Link to='/produtos/$id' params={{ id: produto.id }}>
-            <Button className='w-full cursor-pointer'>Ver detalhes</Button>
+            <Button className='w-full cursor-pointer hover:-translate-y-0.5 hover:shadow-md'>
+              Ver detalhes
+            </Button>
           </Link>
         </div>
       </div>

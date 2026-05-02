@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch, Link } from "@tanstack/react-router";
 import type { Product } from "@/types/product";
 import ProductCard from "../components/ProductCard";
 import type { ProductResponse } from "@/types/productResponse";
@@ -19,6 +19,15 @@ import {
 } from "../components/ui/select";
 import { Slider } from "../components/ui/slider";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useFavorites } from "../hooks/useFavorites";
+import { Heart } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../components/ui/sheet";
 
 export default function CatalogPage() {
   const searchParams: CatalogSearch = useSearch({ strict: false }); // Lê a URL e transforma em um objeto JavaScript
@@ -36,6 +45,7 @@ export default function CatalogPage() {
   const [busca, setBusca] = useState(buscaFiltro);
   const [min, setMin] = useState(minFiltro ?? 0);
   const [max, setMax] = useState(maxFiltro ?? 10000);
+  const { favorites } = useFavorites();
 
   // Atualiza a URL com os novos filtros
   const updateFilters = (newFilters: Partial<CatalogSearch>) => {
@@ -112,6 +122,9 @@ export default function CatalogPage() {
   });
 
   const produtos = data?.items ?? [];
+
+  // Filtra a lista total para pegar apenas os produtos favoritados
+  const produtosFavoritos = allProducts.filter((p) => favorites.includes(p.id));
 
   // Preço máximo e mínimo
   const prices = allProducts.map((p) => p.price);
@@ -263,6 +276,67 @@ export default function CatalogPage() {
               onChange={(e) => setBusca(e.target.value)}
             />
           </div>
+
+          {/* Meus Favoritos (Drawer) */}
+          <Sheet>
+            <SheetTrigger asChild>
+              {/*asChild = Botão é o próprio gatilho para disparar o drawer*/}
+              <Button
+                type='button'
+                variant='outline'
+                className='w-full justify-center gap-2 cursor-pointer border-gray-300'
+              >
+                <Heart className='w-4 h-4 text-red-500 fill-red-500' />
+                Meus Favoritos ({produtosFavoritos.length})
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent className='overflow-y-auto'>
+              <SheetHeader>
+                <SheetTitle className='text-lg font-bold'>
+                  Meus Favoritos
+                </SheetTitle>
+              </SheetHeader>
+              <div className='mt-6 flex flex-col gap-4'>
+                {produtosFavoritos.length === 0 ? (
+                  <p className='text-sm text-gray-500 text-center'>
+                    Nenhum favorito salvo.
+                  </p>
+                ) : (
+                  produtosFavoritos.map((produto) => (
+                    <div
+                      key={produto.id}
+                      className='flex gap-4 items-center border-b pb-4 pl-4'
+                    >
+                      <img
+                        src={produto.thumbnail}
+                        alt={produto.title}
+                        className='w-16 h-16 object-cover rounded-md border'
+                      />
+                      <div className='flex flex-col'>
+                        <span className='font-semibold text-sm line-clamp-2'>
+                          {produto.title}
+                        </span>
+                        <span className='text-purple-700 font-bold text-sm'>
+                          R${" "}
+                          {produto.price.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                        <Link
+                          to='/produtos/$id'
+                          params={{ id: produto.id }}
+                          className='text-xs text-blue-600 hover:underline mt-1'
+                        >
+                          Ver detalhes
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
 
           {/* Limpar Filtros */}
           <Button
