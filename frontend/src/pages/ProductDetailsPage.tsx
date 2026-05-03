@@ -44,6 +44,7 @@ export default function ProductDetailsPage() {
   const navigate = useNavigate();
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [mainImage, setMainImage] = useState<string | null>(null); // Estado com tipo string ou null iniciado como null
 
   // Busca o produto pelo ID na API
   const {
@@ -144,19 +145,26 @@ export default function ProductDetailsPage() {
               {/* Galeria de Imagens */}
               <div className='w-full md:w-1/2 flex flex-col gap-4'>
                 <img
-                  src={produto.thumbnail}
+                  src={mainImage || produto.thumbnail}
                   alt={`Capa do ${produto.title}`}
                   className='w-full h-auto rounded-lg object-cover border'
                 />
-                <div className='grid grid-cols-2 gap-2'>
-                  {produto.images.map((image: string, idx: number) => (
-                    <img
-                      key={idx}
-                      src={image}
-                      alt={`Galeria ${idx + 1}`}
-                      className='w-full h-24 object-cover rounded-md border'
-                    />
-                  ))}
+                <div className='grid grid-cols-4 gap-2'>
+                  {[produto.thumbnail, ...produto.images].map(
+                    (image: string, idx: number) => (
+                      <img
+                        key={idx}
+                        src={image}
+                        alt={`Galeria ${idx + 1}`}
+                        onClick={() => setMainImage(image)}
+                        className={`w-full h-24 object-cover rounded-md cursor-pointer transition-all hover:opacity-80 ${
+                          (mainImage || produto.thumbnail) === image
+                            ? "ring-2 ring-purple-600 border-transparent shadow-sm"
+                            : "border border-gray-200"
+                        }`}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -230,7 +238,10 @@ export default function ProductDetailsPage() {
               </div>
             ) : null}
 
-            <form className='flex flex-col gap-0'>
+            <form
+              className='flex flex-col gap-0'
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <div className='space-y-1'>
                 <Label htmlFor='name'>
                   Nome Completo <span className='text-red-500'>*</span>
@@ -317,7 +328,6 @@ export default function ProductDetailsPage() {
               </div>
 
               <Button
-                onClick={handleSubmit(onSubmit)}
                 type='submit'
                 className='w-full mt-2 cursor-pointer'
                 disabled={isSubmitting}

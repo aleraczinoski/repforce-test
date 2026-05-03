@@ -7,9 +7,24 @@ import {
   Body,
   NotFoundException, //404
   BadRequestException, //400
+  HttpCode,
 } from '@nestjs/common';
 import { products } from './data/products';
 import { z } from 'zod';
+
+const getProductsSchema = z.object({
+  category: z.string().optional(),
+  brand: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  inStock: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'), //Converte para boolean
+  search: z.string().optional(),
+  page: z.coerce.number().default(1), //coerce.number(): String -> Number
+  pageSize: z.coerce.number().default(12),
+});
 
 const createQuoteSchema = z.object({
   productId: z.string().min(1, 'ID do produto é obrigatório'),
@@ -39,16 +54,27 @@ const quotes: Quote[] = [];
 @Controller()
 export class AppController {
   @Get('products') // Cria a rota GET /products
-  getProducts(
-    @Query('category') category?: string,
-    @Query('brand') brand?: string,
-    @Query('minPrice') minPrice?: number,
-    @Query('maxPrice') maxPrice?: number,
-    @Query('inStock') inStock?: boolean,
-    @Query('search') search?: string,
-    @Query('page') page = '1',
-    @Query('pageSize') pageSize = '12',
-  ) {
+  getProducts(@Query() query: any) {
+    const result = getProductsSchema.safeParse(query);
+
+    if (!result.success) {
+      throw new BadRequestException({
+        message: 'Falha na validação dos filtros',
+        errors: result.error.format(),
+      });
+    }
+
+    const {
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      inStock,
+      search,
+      page,
+      pageSize,
+    } = result.data;
+
     let produtosFiltrados = products;
 
     if (category) {
@@ -61,14 +87,14 @@ export class AppController {
         (produto) => produto.brand === brand,
       );
     }
-    if (minPrice) {
+    if (minPrice !== undefined) {
       produtosFiltrados = produtosFiltrados.filter(
-        (produto) => produto.price >= Number(minPrice),
+        (produto) => produto.price >= minPrice,
       );
     }
-    if (maxPrice) {
+    if (maxPrice !== undefined) {
       produtosFiltrados = produtosFiltrados.filter(
-        (produto) => produto.price <= Number(maxPrice),
+        (produto) => produto.price <= maxPrice,
       );
     }
     if (inStock) {
@@ -82,21 +108,18 @@ export class AppController {
       );
     }
 
-    const paginaAtual = Number(page);
-    const itensPorPagina = Number(pageSize);
-
     const total = produtosFiltrados.length;
 
-    const start = (paginaAtual - 1) * itensPorPagina;
-    const end = start + itensPorPagina;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
 
     const items = produtosFiltrados.slice(start, end);
 
     return {
       items,
       total,
-      page: paginaAtual,
-      pageSize: itensPorPagina,
+      page,
+      pageSize,
     };
   }
 
@@ -114,6 +137,7 @@ export class AppController {
 
   // Cria a rota POST /quotes
   @Post('quotes')
+  @HttpCode(201)
   createQuote(@Body() body: any) {
     // Validação dos dados que chegam
     const result = createQuoteSchema.safeParse(body); //Valida o body (success é um boolean)
