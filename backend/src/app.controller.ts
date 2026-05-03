@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { products } from './data/products';
 import { z } from 'zod';
-import { get } from 'http';
 
 const getProductsSchema = z.object({
   category: z.string().optional(),
@@ -55,7 +54,7 @@ const quotes: Quote[] = [];
 @Controller()
 export class AppController {
   @Get('products') // Cria a rota GET /products
-  getProducts(@Query() query: any) {
+  getProducts(@Query() query: unknown) {
     const result = getProductsSchema.safeParse(query);
 
     if (!result.success) {
@@ -139,7 +138,7 @@ export class AppController {
   // Cria a rota POST /quotes
   @Post('quotes')
   @HttpCode(201)
-  createQuote(@Body() body: any) {
+  createQuote(@Body() body: unknown) {
     // Validação dos dados que chegam
     const result = createQuoteSchema.safeParse(body); //Valida o body (success é um boolean)
 

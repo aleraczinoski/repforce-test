@@ -22,7 +22,7 @@ O projeto consiste em uma plataforma onde o usuário pode visualizar uma lista d
 
 ### 🖥️ Frontend
 
-- **Catálogo de Produtos:** Exibição em grid com paginação e responsividade 
+- **Catálogo de Produtos:** Exibição em grid com paginação e responsividade
 - **Filtros Avançados:** Filtros reativos sincronizados com a URL (Categoria, Marca, Faixa de Preço, Disponibilidade e Busca em texto)
 - **Detalhes do Produto:** Galeria de imagens interativa (thumbnails clicáveis)
 - **Cotação:** Formulário de cotação com validações robustas
@@ -42,8 +42,8 @@ O projeto consiste em uma plataforma onde o usuário pode visualizar uma lista d
 
 ### Frontend
 
-- **React(Vite)** 
-- **TypeScript** 
+- **React(Vite)**
+- **TypeScript**
 - **Tailwind CSS** (Estilização e Responsividade)
 - **TanStack Router** (Gerenciamento das rotas e URLs)
 - **TanStack Query** (Comunicação com o backend)
@@ -105,7 +105,7 @@ npm install
 npm run dev
 ```
 
-> O Frontend estará rodando em: `http://localhost:5173` 
+> O Frontend estará rodando em: `http://localhost:5173`
 
 ---
 
@@ -127,11 +127,13 @@ npm run dev
 
 Durante o desenvolvimento do projeto, eu utilizei duas ferramentas de IA (Gemini Code Assist e ChatGPT) com o objetivo de agilizar o trabalho e acelerar meu aprendizado com novas tecnologias
 Gemini Code Assist (Apoio no desenvolvimento)
+
 - Geração de base: Auxílio na criação de blocos de código iniciais para ferramentas cuja sintaxe eu ainda não tinha conhecimento.
 - Arquitetura: Suporte na compreensão e estruturação da base do projeto (organização de pastas e arquivos).
 - Estilização UI: Agilização na estilização da interface gráfica, permitindo focar no aprendizado e no desenvolvimento das tecnologias que eram novidade para mim.
 
 ChatGPT (Suporte ao Aprendizado):
+
 - Aprofundamento técnico: Todo trecho de código gerado em que eu não dominava completamente a ferramenta ou a sintaxe era analisado com o ChatGPT. Utilizei a ferramenta para dissecar os códigos, criar comentários explicativos e garantir que eu estava de fato aprendendo os conceitos implementados, e não apenas copiando e colando.
 
 Em resumo, todo o uso de IA durante o projeto visou garantir agilidade no desenvolvimento e trazer mais facilidade para o meu processo de aprendizado.

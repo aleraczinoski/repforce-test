@@ -94,7 +94,7 @@ export default function ProductDetailsPage() {
       setSuccessMsg("Cotação solicitada com sucesso!");
       reset();
       setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (error) {
+    } catch {
       setErrorMsg("Erro ao solicitar cotação. Tente novamente.");
       setTimeout(() => setErrorMsg(""), 3000);
     }
