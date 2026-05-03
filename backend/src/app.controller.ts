@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { products } from './data/products';
 import { z } from 'zod';
+import { get } from 'http';
 
 const getProductsSchema = z.object({
   category: z.string().optional(),
@@ -173,5 +174,11 @@ export class AppController {
     quotes.push(novaCotacao);
 
     return novaCotacao;
+  }
+
+  // Cria a rota GET /quotes
+  @Get('quotes')
+  getQuotes() {
+    return quotes;
   }
 }

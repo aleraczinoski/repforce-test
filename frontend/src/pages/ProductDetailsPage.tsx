@@ -15,7 +15,10 @@ import { ChevronLeft } from "lucide-react";
 const getQuoteSchema = (maxStock: number) =>
   z.object({
     name: z.string().min(3, "O nome deve ter no mínimo 3 caracteres"),
-    email: z.string().email("E-mail com formato inválido"),
+    email: z
+      .string()
+      .min(1, "O e-mail é obrigatório")
+      .email("E-mail com formato inválido"),
     phone: z
       .string()
       .min(10, "Mínimo de 10 dígitos")
@@ -23,6 +26,10 @@ const getQuoteSchema = (maxStock: number) =>
     company: z.string().min(1, "O nome da empresa é obrigatório"),
     quantity: z
       .any()
+      .refine(
+        (val) => val !== "" && val !== undefined && val !== null,
+        "A quantidade é obrigatória",
+      )
       .transform((val) => Number(val))
       .refine((val) => !isNaN(val), "Digite um número válido")
       .refine(
@@ -68,6 +75,14 @@ export default function ProductDetailsPage() {
     formState: { errors, isSubmitting }, // Erros de validação e se está enviando
   } = useForm<QuoteFormData>({
     resolver: produto ? zodResolver(getQuoteSchema(produto.stock)) : undefined, // Se o produto carregou, usa o schema do Zod com o estoque dele
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      quantity: "" as unknown as number,
+      observations: "",
+    },
   });
 
   const onSubmit = async (data: QuoteFormData) => {
